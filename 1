@@ -1,0 +1,41 @@
+
+---
+
+## 4) Snakefile (pipeline real simplificado)
+
+```python
+rule all:
+    input:
+        "results/differential_expression/results.csv"
+
+rule fastqc:
+    input:
+        "data/raw/{sample}.fastq"
+    output:
+        "results/qc/{sample}_fastqc.html"
+    shell:
+        "fastqc {input} -o results/qc/"
+
+rule align:
+    input:
+        "data/raw/{sample}.fastq"
+    output:
+        "results/alignment/{sample}.bam"
+    shell:
+        "STAR --readFilesIn {input} --outFileNamePrefix results/alignment/{wildcards.sample}_"
+
+rule count:
+    input:
+        "results/alignment/{sample}.bam"
+    output:
+        "results/counts/{sample}.txt"
+    shell:
+        "featureCounts -a annotation.gtf -o {output} {input}"
+
+rule deseq2:
+    input:
+        expand("results/counts/{sample}.txt", sample=["sample1","sample2"])
+    output:
+        "results/differential_expression/results.csv"
+    script:
+        "scripts/deseq2_analysis.R"
