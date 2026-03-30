@@ -1,0 +1,13 @@
+library(DESeq2)
+
+counts <- read.csv("results/counts/sample1.txt", row.names=1)
+coldata <- data.frame(condition=c("control","treated"))
+
+dds <- DESeqDataSetFromMatrix(countData = counts,
+                              colData = coldata,
+                              design = ~ condition)
+
+dds <- DESeq(dds)
+res <- results(dds)
+
+write.csv(as.data.frame(res), file="results/differential_expression/results.csv")
