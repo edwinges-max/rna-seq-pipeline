@@ -1,0 +1,31 @@
+SAMPLES = ["sample1", "sample2"]
+
+rule all:
+    input:
+        expand("results/qc/{sample}_fastqc.html", sample=SAMPLES),
+        expand("results/alignment/{sample}.bam", sample=SAMPLES),
+        "results/differential_expression/results.csv"
+
+rule fastqc:
+    input:
+        "data/raw/{sample}.fastq"
+    output:
+        "results/qc/{sample}_fastqc.html"
+    shell:
+        "fastqc {input} -o results/qc/"
+
+rule align:
+    input:
+        "data/raw/{sample}.fastq"
+    output:
+        "results/alignment/{sample}.bam"
+    shell:
+        "STAR --readFilesIn {input} --outFileNamePrefix results/alignment/{wildcards.sample}_"
+
+rule deseq2:
+    input:
+        expand("results/alignment/{sample}.bam", sample=SAMPLES)
+    output:
+        "results/differential_expression/results.csv"
+    script:
+        "../scripts/deseq2_analysis.R"
